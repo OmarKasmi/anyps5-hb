@@ -1,0 +1,16 @@
+# Homebrew titles for the AnyPS5 test bench.
+# Every entry is free, legal to download, and needs no console.
+# Add new ones as they appear in the PS5 homebrew scene.
+
+[[title]]
+name = "ps5-payload-sdk samples"
+source = "https://github.com/john-tornblom/ps5-payload-sdk/releases/download/releases%2Fv0.9/Payload.binaries.zip"
+kind = "zip-payloads"
+license = "GPL-3.0 (upstream SDK)"
+
+[[title]]
+name = "RetroArch PS5 (eboot + picker + es-de)"
+source = "https://github.com/mihawk-99/PS5_RetroArch/releases/download/v1.0.0-beta.1/PS5_RetroArch-v1.0.0-beta1.zip"
+kind = "zip-title"
+title_id = "PPSA99169"
+license = "GPL-3.0 (upstream project)"

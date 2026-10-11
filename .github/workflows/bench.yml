@@ -1,0 +1,63 @@
+name: bench
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: checkout bench
+        uses: actions/checkout@v4
+
+      - name: install toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build git g++ python3
+
+      - name: checkout AnyPS5
+        run: |
+          git clone --depth 1 https://github.com/boykopovar/AnyPS5.git ../Anyps5
+          cd ../Anyps5
+          git submodule update --init --recursive --depth 1
+
+      - name: build relinker and libraries
+        run: |
+          cmake -S ../Anyps5 -B ../Anyps5/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+          cmake --build ../Anyps5/build --parallel "$(nproc)"
+          cmake --build ../Anyps5/build --target libs --parallel "$(nproc)"
+
+      - name: run bench
+        env:
+          ANYPS5_DIR: ${{ github.workspace }}/../Anyps5
+        run: python3 bench.py
+
+      - name: commit report
+        run: |
+          git config user.name "bench-bot"
+          git config user.email "bench-bot@users.noreply.github.com"
+          git add report/REPORT.md
+          if git diff --cached --quiet; then
+            echo "report unchanged"
+          else
+            git commit -m "bench: refresh report (AnyPS5 @ $(cd ../Anyps5 && git rev-parse --short HEAD))"
+            git push
+          fi
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-work
+          path: work/
+          retention-days: 14
